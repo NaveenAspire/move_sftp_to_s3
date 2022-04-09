@@ -1,72 +1,49 @@
 """"This module that is used for migrate the files from sftp to s3 bucket"""
-import argparse
-from datetime import date
-import time
-import pysftp
-import boto3
+import re
+from sftp_connection import SftpCon
+from s3 import S3Service
 
 
 class MoveFileSftpToS3:
     """This is the class for moving file sftp to s3"""
 
-    def __init__(self, host, username, password, bucket_name) -> None:
+    def __init__(self) -> None:
         """This is the init method for the class of MoveFileSftpToS3"""
-        self.conn = pysftp.Connection(host=host, username=username, password=password)
-        self.bucket_name = bucket_name
-        self.s3_client = boto3.client("s3")
+        self.sftp_conn = SftpCon()
+        self.s3_client = S3Service()
 
-    def move_file(self,sftp_path):
+    def move_file(self):
         """This method is used for move the file sftp to s3"""
-        sftp_file_list = self.conn.listdir(sftp_path)
+        sftp_file_list = self.sftp_conn.list_sftp_files()
         for file_name in sftp_file_list:
-            with self.conn.open(sftp_path + file_name) as file_obj:
-                key = self.get_key_name(file_name)
-                self.s3_client.put_object(
-                    Bucket=self.bucket_name, Body=file_obj.read(), Key=key
-                )
+            file_obj = self.sftp_conn.read_file(file_name)
+            key = self.get_key_name(file_name)
+            self.s3_client.put_object_to_bucket(file_obj.read(), key)
+            self.sftp_conn.rename_file(file_name)
 
     def get_key_name(self, file_name):
         """This method is used to set the key name for uploading s3"""
-        t_date = str(date.today()).split("-")
-        time_stamp = str(int(time.time()))
-        filename = file_name.split(".")[0] + "_" + time_stamp + ".csv"
+        d_match = re.search(
+            "([0-9]{2}\.[0-9]{2}\.[0-9]{2})", "Order Data as of 04.06.22.csv"
+        ).group()
+        t_date = d_match.split(".")
         key = (
-            "spotify/source/pt_year="
-            + t_date[0]
+            "pt_year="
+            + t_date[-1]
             + "/pt_month="
-            + t_date[1]
+            + t_date[-2]
             + "/pt_day="
-            + t_date[2]
+            + t_date[-3]
             + "/"
-            + filename
+            + file_name
         )
         return key
 
 
 def main():
     """This is the main method for the module name move_file_sftp_to_s3"""
-    parser = argparse.ArgumentParser("For giving cli inputs")
-    parser.add_argument(
-        "--host", type=str, help="Enter host name for SFTP", required=True
-    )
-    parser.add_argument(
-        "--username", type=str, help="Enter user name for SFTP", required=True
-    )
-    parser.add_argument(
-        "--password", type=str, help="Enter password for SFTP", required=True
-    )
-    parser.add_argument("--sftp_path", type=str, help="Enter sftp path", required=True)
-    parser.add_argument(
-        "--bucket_name",
-        type=str,
-        help="Enter th bucket name for store files retrived from sftp server",
-        required=True,
-    )
-    args = parser.parse_args()
-    move_sftp_to_s3 = MoveFileSftpToS3(
-        args.host, args.username, args.password, args.bucket_name
-    )
-    move_sftp_to_s3.move_file(args.sftp_path)
+    move_sftp_to_s3 = MoveFileSftpToS3()
+    move_sftp_to_s3.move_file()
 
 
 if __name__ == "__main__":
