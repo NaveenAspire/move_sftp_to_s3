@@ -16,29 +16,37 @@ class MoveFileSftpToS3:
         """This method is used for move the file sftp to s3"""
         sftp_file_list = self.sftp_conn.list_sftp_files()
         for file_name in sftp_file_list:
+            if file_name.startswith('prcssd.'):
+                continue
             file_obj = self.sftp_conn.read_file(file_name)
             key = self.get_key_name(file_name)
-            self.s3_client.put_object_to_bucket(file_obj.read(), key)
-            self.sftp_conn.rename_file(file_name)
+            if key:
+                self.s3_client.put_object_to_bucket(file_obj.read(), key)
+                self.sftp_conn.rename_file(file_name)
 
     def get_key_name(self, file_name):
         """This method is used to set the key name for uploading s3"""
-        d_match = re.search(
-            "([0-9]{2}\.[0-9]{2}\.[0-9]{2})", "Order Data as of 04.06.22.csv"
-        ).group()
-        t_date = d_match.split(".")
-        key = (
-            "pt_year="
-            + t_date[-1]
-            + "/pt_month="
-            + t_date[-2]
-            + "/pt_day="
-            + t_date[-3]
-            + "/"
-            + file_name
-        )
-        return key
-
+        result = True
+        try :
+            d_match = re.search(
+                "([0-9]{2}\.[0-9]{2}\.[0-9]{2})", file_name
+            ).group()
+            t_date = d_match.split(".")
+            key = (
+                "pt_year="
+                + t_date[-1]
+                + "/pt_month="
+                + t_date[-2]
+                + "/pt_day="
+                + t_date[-3]
+                + "/"
+                + file_name
+            )
+        except Exception as err:
+            result = False
+            print(err)
+        if result :
+            return key
 
 def main():
     """This is the main method for the module name move_file_sftp_to_s3"""
