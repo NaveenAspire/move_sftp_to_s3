@@ -1,39 +1,81 @@
+
+
+# Not completed 
+
 """This is the test module for the task"""
 
+import os
 import pytest
+from responses import mock
 from s3 import S3Service
-from sftp_connection import SftpCon
+# from sftp_connection import SftpCon
 
 class Test_s3:
     """This class test for s3 module"""
     
-    def test_s3_object(self):
-        """This method test the instance belong to the class of S3Service"""
-        self.s3_obj = S3Service()
-        assert isinstance(self.s3_obj,S3Service)
+    @pytest.fixture
+    def bucket_name(self):
+        return "my-test-bucket"
 
-    def test_put_object(obj_body,key_name):
-        s3_put = S3Service()
-        response = s3_put.put_object_to_bucket(obj_body,key_name)
-        assert type(response) == dict
+
+    @pytest.fixture
+    def s3_test(self,s3_client, bucket_name):
+        s3_client.create_bucket(Bucket=bucket_name)
+        yield
+    
+    def test_upload_file(s3_client,s3_test,bucket_name):
+        my_client = S3Service()
+        res = my_client.upload_file(bucket_name)
+        assert res
         
-class Test_sftp:
-    """This class test for sftp_connection module"""
-    
-    def test_sftp_object(self):
-        """This method test the instance belong to the class of SftpCon"""
-        self.sftp_obj = SftpCon()
-        assert isinstance(self.sftp_obj,SftpCon)
         
-    def test_list_sftp_files(self):
-        """This method test weather list_sftp_files return files or not"""
-        result = self.sftp_obj.list_sftp_files()
-        assert type(result) == list
         
-    def test_read_file(self,sftp_file):
-        """This method test weather sftp read file or not"""
-        result = self.sftp_obj.read_file(sftp_file)
-        assert type(result) == object
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+    # def test_s3_object(self):
+    #     """This method test the instance belong to the class of S3Service"""
+    #     self.s3_obj = S3Service()
+    #     assert isinstance(self.s3_obj,S3Service)
+
+    # def test_put_object(obj_body,key_name):
+    #     s3_put = S3Service()
+    #     response = s3_put.put_object_to_bucket(obj_body,key_name)
+    #     assert type(response) == dict
     
+        
+# class Test_sftp:
+#     """This class test for sftp_connection module"""
     
+#     def test_sftp_object(self):
+#         """This method test the instance belong to the class of SftpCon"""
+#         self.sftp_obj = SftpCon()
+#         assert isinstance(self.sftp_obj,SftpCon)
+        
+#     def test_list_files(self):
+#         """This method test weather list_sftp_files return files or not"""
+#         result = self.sftp_obj.list_sftp_files()
+#         assert type(result) == list
+        
+#     def test_read_file(self,sftp_file):
+#         """This method test weather sftp read file or not"""
+#         result = self.sftp_obj.read_file(sftp_file)
+#         assert type(result) == object
     
+#     def test_rename_file(self,sftp_file):
+#         """This method will test the if the name changed or not"""
+#         result = self.sftp_obj.rename_file(sftp_file)
+#         assert self.sftp_obj.conn.exists(result) == True
+        
+#     def test_download_file(self,sftp_file):
+#         """This method will test the when the file downloaded or not"""
+#         result = self.sftp_obj.download_file(sftp_file)
+#         assert os.path.exists(result) == True

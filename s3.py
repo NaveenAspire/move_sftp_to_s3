@@ -19,12 +19,23 @@ class S3Service:
         )
         self.bucket_name = config["s3"]["bucket"]
         self.bucket_path = config["s3"]["bucket_path"]
+        self.local_path = config["Local"]["loacl_path"]
 
-    def put_object_to_bucket(self, body, key):
-        """This function done the file uploading in s3 aspire-data-dev bucket"""
+
+    def upload_file(self, file,key):
+        """This method is used to upload the file into s3 bucket"""
         try:
-            self.s3_obj.put_object(
-                Bucket=self.bucket_name, Body=body, Key=self.bucket_path + key
+            self.s3_obj.upload_file(
+                self.bucket_name, self.local_path + file, self.bucket_path + key
             )
         except ClientError as error:
             print(error)
+
+    # def put_object(self, body, key):
+    #     """This method is used to put object in s3 bucket"""
+    #     try:
+    #         self.s3_obj.put_object(
+    #             Bucket=self.bucket_name, Body=body, Key=self.bucket_path + key
+    #         )
+    #     except ClientError as error:
+    #         print(error)

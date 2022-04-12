@@ -17,10 +17,16 @@ class SftpCon:
             password=config["SFTP"]["password"],
         )
         self.sftp_path = config["SFTP"]["sftp_path"]
+        self.local_path = config["Local"]['local_path']
+    
+    def download_file(self,file):
+        """This is method used to dwonload the file from sftp to local"""
+        self.conn.get(self.sftp_path+file,self.local_path+file)
+        return self.local_path+file
 
-    def list_sftp_files(self):
+    def list_files(self):
         """This method that returns the list of files names for the given path"""
-        sftp_file_list = self.conn.listdir(self.sftp_path)
+        sftp_file_list = [file for file in self.conn.listdir(self.sftp_path) if not file.startswith('prcssd.')]
         return sftp_file_list
 
     def read_file(self, file):
@@ -30,4 +36,6 @@ class SftpCon:
 
     def rename_file(self, file):
         """This method is used for rename the sftp file or directory"""
-        self.conn.rename(self.sftp_path + file, self.sftp_path + "prcssd." + file)
+        new_name = self.sftp_path + "prcssd." + file
+        self.conn.rename(self.sftp_path + file, new_name)
+        return new_name
