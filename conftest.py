@@ -12,6 +12,7 @@ from mocksftp import server
 def s3_client():
     with mock_s3():
         conn = boto3.client("s3", region_name="us-east-1")
+        print(conn)
         yield conn
         
 # @pytest.fixture
