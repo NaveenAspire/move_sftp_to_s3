@@ -1,10 +1,8 @@
-from xmlrpc.client import Server
 import boto3
 import os
 import pytest
 
 from moto import mock_s3
-from mocksftp import server
 
 
 
@@ -15,7 +13,10 @@ def s3_client():
         print(conn)
         yield conn
         
-# @pytest.fixture
-# def sftp_client():
-#     with server.Server.client('127.0.0.1'):
-#         yield 
+        
+@pytest.fixture
+def sftp_client(sftp_server):
+    print(sftp_server.host)
+    with sftp_server.client('sample-user') as client:
+        sftp = client.open_sftp()
+        yield sftp

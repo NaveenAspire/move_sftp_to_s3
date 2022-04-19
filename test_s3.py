@@ -8,6 +8,7 @@ import os
 import pytest
 from responses import mock
 from s3 import S3Service
+import boto3
 from sftp_connection import SftpCon
 
 class Test_s3:
@@ -29,13 +30,15 @@ class Test_s3:
         my_client = S3Service()
         print(s3_client)
         res = my_client.upload_file('sample.csv','sample.csv')
-        assert res
+        objects = s3_client.list_objects(Bucket='my-test-bucket')
+        assert objects['Contents'][0]['Key'] == res
     
     @pytest.mark.xfail    
     def test_put_object(self,s3_client,s3_test):
         my_client = S3Service()
         res = my_client.put_object(b'hai hello','hello.txt')
-        assert type(res) == dict
+        objects = s3_client.list_objects(Bucket='my-test-bucket')
+        assert objects['Contents'][0]['Key'] == res
     
     @pytest.mark.xfail    
     def test_s3_object(self):
@@ -43,11 +46,17 @@ class Test_s3:
         self.s3_obj = S3Service()
         assert isinstance(self.s3_obj,S3Service)
     
+    
         
 class Test_sftp:
     """This class test for sftp_connection module"""
     
-    # def test_sftp_object(self,sftp_client):
+    def test_sfpt_conntion(self,sftp_client):
+            sftp_client.put('opt/data/sample.csv','sample.csv')
+            print(sftp_client.listdir())
+            assert sftp_client.listdir() == ['sample.csv']
+    
+    # def test_sftp_object(self,sftp_client,sftp_server):
     #     """This method test the instance belong to the class of SftpCon"""
     #     self.sftp_obj = SftpCon()
     #     assert isinstance(self.sftp_obj,SftpCon)

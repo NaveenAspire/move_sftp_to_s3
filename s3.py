@@ -32,7 +32,7 @@ class S3Service:
             )
         except ClientError as error:
             print(error)
-        return True
+        return self.bucket_path + key
 
     def put_object(self, body, key):
         """This method is used to put object in s3 bucket"""
@@ -40,7 +40,7 @@ class S3Service:
             res = self.s3_obj.put_object(
                 Bucket=self.bucket_name, Body=body, Key=self.bucket_path + key
             )
-            return res
+            return self.bucket_path + key
         except ClientError as error:
             print(error)
             return False

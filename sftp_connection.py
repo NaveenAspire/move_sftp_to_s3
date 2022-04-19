@@ -16,6 +16,7 @@ class SftpCon:
             username=config["SFTP"]["username"],
             password=config["SFTP"]["password"],
         )
+
         self.sftp_path = config["SFTP"]["sftp_path"]
         self.local_path = config["Local"]['local_path']
     
