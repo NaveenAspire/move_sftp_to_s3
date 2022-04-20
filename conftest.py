@@ -1,10 +1,6 @@
 import boto3
-import os
 import pytest
-
 from moto import mock_s3
-
-
 
 @pytest.fixture
 def s3_client():

@@ -15,23 +15,31 @@ class MoveFileSftpToS3:
 
     def move_file(self):
         """This method is used for move the file sftp to s3"""
-        sftp_file_list = self.sftp_conn.list_files()
-        for file_name in sftp_file_list:
-            # file_obj = self.sftp_conn.read_file(file_name)
-            self.sftp_conn.download_file(file_name)
-            key = self.get_key_name(file_name)
-            if key:
-                # self.s3_client.put_object(file_obj.read(), key)
-                self.s3_client.upload_file(file_name, key)
-                self.sftp_conn.rename_file(file_name)
+        try:
+            sftp_file_list = self.sftp_conn.list_files()
+            print("sftp files list are ready..")
+            for file_name in sftp_file_list:
+                # file_obj = self.sftp_conn.read_file(file_name)
+                self.sftp_conn.download_file(file_name)
+                key = self.get_key_name(file_name)
+                if key:
+                    # self.s3_client.put_object(file_obj.read(), key)
+                    self.s3_client.upload_file(file_name, key)
+                    self.sftp_conn.rename_file(file_name)
+                    print(file_name+'is sucessfully moved to s3')
+            status = 'Success'
+        except Exception as err:
+            print(err)
+            status = 'Failed'
+        return status    
 
-    def get_key_name(self, file_name):
+    def get_key_name(self,file_name):
         """This method is used to set the key name for uploading s3"""
         try:
-            d_match = re.search(
-                "([0-9]{1,2}\.[0-9]{1,2}\.[0-9]{1,4})", file_name
-            ).group()
-            date_object = datetime.strptime(d_match, "%m.%d.%y")
+            d_match = re.search("([0-9]{1,2}.[0-9]{1,2}.[0-9]{2,4})", file_name).group()
+            year = d_match.split('.')[-1]
+            print(len(year))
+            date_object = self.get_date_object(d_match)
             key = (
                 "pt_year="
                 + date_object.strftime("%Y")
@@ -46,7 +54,18 @@ class MoveFileSftpToS3:
             key = False
             print(err)
         return key
-
+    
+    def get_date_object(self,date_str):
+        """This method used for check year format for generate key name"""
+        year = date_str.split('.')[-1]
+        print(len(year))
+        if len(year) == 2:
+            date_object = datetime.strptime(date_str, "%d.%m.%y")
+        elif len(year) == 4 :
+            date_object = datetime.strptime(date_str, "%d.%m.%Y")
+        else:
+            date_object = None
+        return date_object
 
 def main():
     """This is the main method for the module name move_file_sftp_to_s3"""
