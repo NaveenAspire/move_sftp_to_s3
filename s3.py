@@ -22,31 +22,36 @@ class S3Service:
         self.bucket_path = config["s3"]["bucket_path"]
         self.local_path = config["Local"]["local_path"]
 
-
-    def upload_file(self,file,key):
+    def upload_file(self, file, key):
         """This method is used to upload the file into s3 bucket"""
         try:
+            key = self.bucket_path + key
             self.s3_obj.upload_file(
-                 self.local_path + file,self.bucket_name,self.bucket_path + key
+                self.local_path + file,
+                self.bucket_name,
+                key
                 # self.local_path + file, self.bucket_path + key
             )
-        except ClientError as error:
+        except (Exception, ClientError) as error:
             print(error)
-        return self.bucket_path + key
+            key = None              
+        return key
 
     def put_object(self, body, key):
         """This method is used to put object in s3 bucket"""
         try:
-            res = self.s3_obj.put_object(
-                Bucket=self.bucket_name, Body=body, Key=self.bucket_path + key
-            )
-            return self.bucket_path + key
+            key = self.bucket_path + key
+            res = self.s3_obj.put_object(Bucket=self.bucket_name, Body=body, Key=key)
         except ClientError as error:
             print(error)
-            return False
-    
+            key = "Not available"
+        return key
+
+
 def main():
+    """This is the main method for the module s3"""
     s3_service = S3Service()
-    
-if __name__ == '__main__':
-    main()    
+
+
+if __name__ == "__main__":
+    main()
